@@ -1,8 +1,8 @@
 import sys
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel, QHBoxLayout
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import pyqtSlot, Qt
 
 FILENAME = ""
 
@@ -22,15 +22,13 @@ class App(QWidget):
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
 
-		loadButton = QPushButton('Load image', self)
-		loadButton.setToolTip('Click here to load the image from files')
-		loadButton.resize(100, 100)
-		loadButton.move(10, 10)
-		loadButton.clicked.connect(self.loadClickAction)
+		self.loadButton = QPushButton('Load image', self)
+		self.loadButton.setToolTip('Click here to load the image from files')
+		# self.loadButton.resize(100, 100)
+		self.loadButton.move(10, 10)
+		self.loadButton.clicked.connect(self.loadClickAction)
 
-		# label = QLabel(self)
-		# pixmap = QPixmap(FILENAME)
-		# label.setPixmap(pixmap)
+		self.imageLabel = QLabel(self)
 
 		self.show()
 
@@ -41,10 +39,16 @@ class App(QWidget):
 		FILENAME = QFileDialog.getOpenFileName(filter="Images (*.png *.jpg)")[0]
 		if FILENAME == '': return
 		print(FILENAME)
-		# self.startImage = plt.imread(fileName)
-		# if len(self.startImage.shape) == 3:  # RGB
-		# 	self.startImage = self.startImage[:, :, 0]
-		# assert len(self.startImage.shape) == 2
+
+		px = QPixmap(FILENAME)
+		px = px.scaled(200, 200, Qt.KeepAspectRatio)
+
+		self.imageLabel.setPixmap(px)
+		self.imageLabel.setToolTip(FILENAME)
+		self.imageLabel.move(10, self.loadButton.height()+20)
+		self.imageLabel.resize(200, 200)
+		self.imageLabel.show()
+
 
 
 def startApp():
