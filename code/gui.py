@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog
 from PyQt5.QtCore import pyqtSlot
 
 
@@ -29,6 +30,13 @@ class App(QWidget):
 	@pyqtSlot()
 	def loadClickAction(self):
 		print('load image')
+		fileName = QFileDialog.getOpenFileName(filter="Images (*.png *.jpg)")[0]
+		if fileName == '': return
+		print(fileName)
+		self.startImage = plt.imread(fileName)
+		if len(self.startImage.shape) == 3:  # RGB
+			self.startImage = self.startImage[:, :, 0]
+		assert len(self.startImage.shape) == 2
 
 
 def startApp():
