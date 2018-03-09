@@ -1,7 +1,10 @@
 import sys
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import pyqtSlot
+
+FILENAME = ""
 
 
 class App(QWidget):
@@ -25,18 +28,23 @@ class App(QWidget):
 		loadButton.move(10, 10)
 		loadButton.clicked.connect(self.loadClickAction)
 
+		# label = QLabel(self)
+		# pixmap = QPixmap(FILENAME)
+		# label.setPixmap(pixmap)
+
 		self.show()
 
 	@pyqtSlot()
 	def loadClickAction(self):
+		global FILENAME
 		print('load image')
-		fileName = QFileDialog.getOpenFileName(filter="Images (*.png *.jpg)")[0]
-		if fileName == '': return
-		print(fileName)
-		self.startImage = plt.imread(fileName)
-		if len(self.startImage.shape) == 3:  # RGB
-			self.startImage = self.startImage[:, :, 0]
-		assert len(self.startImage.shape) == 2
+		FILENAME = QFileDialog.getOpenFileName(filter="Images (*.png *.jpg)")[0]
+		if FILENAME == '': return
+		print(FILENAME)
+		# self.startImage = plt.imread(fileName)
+		# if len(self.startImage.shape) == 3:  # RGB
+		# 	self.startImage = self.startImage[:, :, 0]
+		# assert len(self.startImage.shape) == 2
 
 
 def startApp():
