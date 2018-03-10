@@ -7,6 +7,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 
 FILENAME = ""
+LOADED_PIC_SIZE = 300
 
 
 class App(QWidget):
@@ -21,6 +22,7 @@ class App(QWidget):
 		self.initUI()
 
 	def initUI(self):
+		global LOADED_PIC_SIZE
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
 
@@ -48,6 +50,14 @@ class App(QWidget):
 		self.layout = QtGui.QVBoxLayout(self)
 		self.inputLayout = QtGui.QHBoxLayout()
 
+		px = QPixmap("blank.png")
+		px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
+		self.imageLabel.setPixmap(px)
+		self.imageLabel.setToolTip('Here will show loaded picture.')
+		self.imageLabel.move(10, self.loadButton.height() + 20)
+		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
+		self.imageLabel.show()
+
 		self.layout.addWidget(self.loadButton)
 		self.inputLayout.addWidget(self.param_tree)
 		self.inputLayout.addWidget(self.imageLabel)
@@ -65,12 +75,12 @@ class App(QWidget):
 		print(FILENAME)
 
 		px = QPixmap(FILENAME)
-		px = px.scaled(500, 500, Qt.KeepAspectRatio)
+		px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
 
 		self.imageLabel.setPixmap(px)
 		self.imageLabel.setToolTip(FILENAME)
 		self.imageLabel.move(10, self.loadButton.height()+20)
-		self.imageLabel.resize(500, 500)
+		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
 		self.imageLabel.show()
 
 
