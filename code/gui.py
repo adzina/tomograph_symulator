@@ -8,6 +8,7 @@ from pyqtgraph.Qt import QtGui
 
 FILENAME = ""
 LOADED_PIC_SIZE = 300
+RESULT_PIC_SIZE = 620
 
 
 class App(QWidget):
@@ -22,21 +23,19 @@ class App(QWidget):
 		self.initUI()
 
 	def initUI(self):
-		global LOADED_PIC_SIZE
+		global LOADED_PIC_SIZE, RESULT_PIC_SIZE
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
 
 		self.loadButton = QPushButton('Load image', self)
 		self.loadButton.setToolTip('Click here to load the image from files')
-		self.loadButton.move(10, 10)
 		self.loadButton.clicked.connect(self.loadClickAction)
 
 		self.imageLabel = QLabel(self)
 		px = QPixmap("blank.png")
 		px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
 		self.imageLabel.setPixmap(px)
-		self.imageLabel.setToolTip('Here will show loaded picture.')
-		self.imageLabel.move(10, self.loadButton.height() + 20)
+		self.imageLabel.setToolTip('The loaded image will appear here.')
 		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
 		self.imageLabel.show()
 
@@ -55,9 +54,16 @@ class App(QWidget):
 
 		self.startButton = QPushButton('Start', self)
 		self.startButton.setToolTip('Click here to start the simulation')
-		self.startButton.move(10, 10)
 		self.startButton.clicked.connect(self.startClickAction)
 		self.startButton.setEnabled(False)
+
+		self.resultLabel = QLabel(self)
+		px = QPixmap("blank.png")
+		px = px.scaledToWidth(RESULT_PIC_SIZE)
+		self.resultLabel.setPixmap(px)
+		self.resultLabel.setToolTip('The result will appear here.')
+		self.resultLabel.resize(RESULT_PIC_SIZE, RESULT_PIC_SIZE)
+		self.resultLabel.show()
 
 		self.layout = QtGui.QVBoxLayout(self)
 		self.inputLayout = QtGui.QHBoxLayout()
@@ -67,6 +73,7 @@ class App(QWidget):
 		self.inputLayout.addWidget(self.imageLabel)
 		self.layout.addLayout(self.inputLayout)
 		self.layout.addWidget(self.startButton)
+		self.layout.addWidget(self.resultLabel)
 
 		self.show()
 
@@ -83,7 +90,6 @@ class App(QWidget):
 
 		self.imageLabel.setPixmap(px)
 		self.imageLabel.setToolTip(FILENAME)
-		self.imageLabel.move(10, self.loadButton.height()+20)
 		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
 		self.imageLabel.show()
 
