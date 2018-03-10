@@ -28,11 +28,17 @@ class App(QWidget):
 
 		self.loadButton = QPushButton('Load image', self)
 		self.loadButton.setToolTip('Click here to load the image from files')
-		# self.loadButton.resize(100, 100)
 		self.loadButton.move(10, 10)
 		self.loadButton.clicked.connect(self.loadClickAction)
 
 		self.imageLabel = QLabel(self)
+		px = QPixmap("blank.png")
+		px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
+		self.imageLabel.setPixmap(px)
+		self.imageLabel.setToolTip('Here will show loaded picture.')
+		self.imageLabel.move(10, self.loadButton.height() + 20)
+		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
+		self.imageLabel.show()
 
 		param_tree = (
 			{'name': 'img_size', 'type': 'int', 'value': 400},
@@ -47,22 +53,20 @@ class App(QWidget):
 		self.param_tree.setParameters(self.parameters, showTop=False)
 		self.param_tree.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred))
 
+		self.startButton = QPushButton('Start', self)
+		self.startButton.setToolTip('Click here to start the simulation')
+		self.startButton.move(10, 10)
+		self.startButton.clicked.connect(self.startClickAction)
+		self.startButton.setEnabled(False)
+
 		self.layout = QtGui.QVBoxLayout(self)
 		self.inputLayout = QtGui.QHBoxLayout()
-
-		px = QPixmap("blank.png")
-		px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
-		self.imageLabel.setPixmap(px)
-		self.imageLabel.setToolTip('Here will show loaded picture.')
-		self.imageLabel.move(10, self.loadButton.height() + 20)
-		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
-		self.imageLabel.show()
 
 		self.layout.addWidget(self.loadButton)
 		self.inputLayout.addWidget(self.param_tree)
 		self.inputLayout.addWidget(self.imageLabel)
-
 		self.layout.addLayout(self.inputLayout)
+		self.layout.addWidget(self.startButton)
 
 		self.show()
 
@@ -82,6 +86,12 @@ class App(QWidget):
 		self.imageLabel.move(10, self.loadButton.height()+20)
 		self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
 		self.imageLabel.show()
+
+		self.startButton.setEnabled(True)
+
+	@pyqtSlot()
+	def startClickAction(self):
+		print('start doing stuff')
 
 
 def startApp():
