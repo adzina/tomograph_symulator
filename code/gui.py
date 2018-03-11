@@ -5,6 +5,55 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import pyqtSlot, Qt
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
+import numpy as np
+
+
+def line_coord(alpha: float, disp: float, size: int):
+    r_circle = size // 2
+    max_r = int(np.sqrt((r_circle ** 2) - (disp ** 2))) - 1
+    span_r = range(-max_r, max_r)
+    sin_a = np.sin(alpha)
+    cos_a = np.cos(alpha)
+    dx = -int(disp * sin_a)
+    dy = int(disp * cos_a)
+	
+    matrix = []
+	
+    for r in span_r:
+        rx = r_circle + int(r*cos_a) + dx
+        ry = r_circle + int(r*sin_a) + dy
+        matrix.append((rx,ry))		
+	
+    return matrix
+
+
+def draw_line(img, size, alpha, delta, value):
+    matrix = line_coord(alpha, delta, size)
+    for (x,y) in matrix:
+        img[x,y] = value		
+
+
+def draw_rays(img_size: int, n_angles: int, n_detectors: int, width: float) -> np.ndarray:
+    img = np.zeros((img_size, img_size), dtype=float)
+
+    width_det_line = img_size * width
+    for ang in range(n_angles):
+        for detector in range(n_detectors):
+            angle = ang/n_angles * np.pi
+            delta = width_det_line * (-0.5 + detector/n_detectors)
+            value = (ang+1)/n_angles
+            draw_line(img, img_size, angle, delta, value)
+    return img
+
+
+def test():
+    img_size = 400
+    n_angles = 20
+    n_detectors = 20
+    width = 0.4
+    img = draw_rays(img_size, n_angles, n_detectors, width)
+    return img
+    
 
 FILENAME = ""
 LOADED_PIC_SIZE = 300
@@ -15,7 +64,7 @@ class App(QWidget):
 
 	def __init__(self):
 		super().__init__()
-		self.title = 'Tompgraph Simulator'
+		self.title = 'Tomograph Simulator'
 		self.left = 10
 		self.top = 10
 		self.width = 640
@@ -97,7 +146,15 @@ class App(QWidget):
 
 	@pyqtSlot()
 	def startClickAction(self):
-		print('start doing stuff')
+		img = test()
+		img = QtGui.QImage(img, img.shape[1],img.shape[0], img.shape[1] * 3,QtGui.QImage.Format_RGB888)
+		pix = QPixmap(img)
+
+		pix = pix.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
+
+		self.imageLabel.setPixmap(pix)
+		self.imageLabel.show()
+
 
 
 def startApp():
@@ -107,4 +164,4 @@ def startApp():
 
 
 if __name__ == '__main__':
-	startApp()
+    startApp()
