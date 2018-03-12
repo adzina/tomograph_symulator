@@ -21,13 +21,14 @@ def line_coord(alpha: float, disp: float, size: int):
 	
     return matrix
 
-
+#do usuniecia
 def draw_line(img, size, alpha, delta, value):
     matrix = line_coord(alpha, delta, size)
     for (x,y) in matrix:
-        img[x,y] = value		
+        img[x,y] = value
 
 
+#do usuniecia
 def draw_rays(img_size: int, n_angles: int, n_detectors: int, width: float) -> np.ndarray:
     img = np.zeros((img_size, img_size), dtype=float)
 
@@ -40,6 +41,20 @@ def draw_rays(img_size: int, n_angles: int, n_detectors: int, width: float) -> n
             draw_line(img, img_size, angle, delta, value)
     return img
 
+def radon(img: np.ndarray, sinogram: np.ndarray, n_angles: int, n_detectors: int, \
+                     width: float):
+    assert len(img.shape) == 2  # image in greyscale
+    
+    img_size = min(img.shape)
+    width_px = img_size * width
+    for ang in range(n_angles):
+        for detector in range(n_detectors):
+            angle = ang/n_angles * np.pi
+            delta = width_px * (-0.5 + detector/n_detectors)
+            points = line_coord(angle, delta, img_size)
+            for x, y in points:
+                sinogram[ang, detector] += img[x, y]
+        yield ang
 
 def test():
     img_size = 400
