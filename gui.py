@@ -7,22 +7,24 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
 from pyqtgraph.Qt import QtGui
 import numpy as np
-import proba
+import logic
 
 FILENAME = ""
 LOADED_PIC_SIZE = 300
-RESULT_PIC_SIZE = 620
+RESULT_PIC_SIZE = 300
 
 
 class App(QWidget):
 
 	def __init__(self):
-		super().__init__()
-		self.title = 'Tompgraph Simulator'
+		QWidget.__init__(self)
+		self.title = 'Tomograph Simulator'
 		self.left = 10
 		self.top = 10
 		self.width = 640
 		self.height = 480
+		
+		#self.layout.addWidget(self.progress_bar)
 		self.initUI()
 
 	def initUI(self):
@@ -34,47 +36,33 @@ class App(QWidget):
 		self.loadButton.setToolTip('Click here to load the image from files')
 		self.loadButton.clicked.connect(self.loadClickAction)
 
-		# self.imageLabel = QLabel(self)
-		# px = QPixmap("blank.png")
-		# px = px.scaled(LOADED_PIC_SIZE, LOADED_PIC_SIZE, Qt.KeepAspectRatio)
-		# self.imageLabel.setPixmap(px)
-		# self.imageLabel.setToolTip('The loaded image will appear here.')
-		# self.imageLabel.resize(LOADED_PIC_SIZE, LOADED_PIC_SIZE)
-		# self.imageLabel.show()
-
 		self.imageView = pg.ImageView(self)
 		self.imageView.setToolTip('The loaded image will appear here.')
 
 		param_tree = (
 			{'name': 'image_size', 'type': 'int', 'value': 400},
 			{'name': 'n_angles', 'type': 'int', 'value': 50},
-			{'name': 'n_detectors', 'type': 'int', 'value': 10}
+			{'name': 'n_detectors', 'type': 'int', 'value': 10},
+            {'name': 'width', 'type': 'float', 'value': 0.9},
+           # {'name': 'mask_size', 'type': 'float', 'value': 5},
+            {'name': 'play_rate', 'type': 'int', 'value': 2}
 		)
 		self.parameters = pg.parametertree.Parameter.create(name='Settings', type='group', children=param_tree)
 		self.param_tree = pg.parametertree.ParameterTree()
 		self.param_tree.setParameters(self.parameters, showTop=False)
 		self.param_tree.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred))
-		self.param_tree.setParameters(self.parameters, showTop=False)
-		# self.parameters.child('nazwa').value()
 
 		self.startButton = QPushButton('Start', self)
 		self.startButton.setToolTip('Click here to start the simulation')
 		self.startButton.clicked.connect(self.startClickAction)
 		self.startButton.setEnabled(False)
 
-		# self.resultLabel = QLabel(self)
-		# px = QPixmap("/code/blank.png")
-		# px = px.scaledToWidth(RESULT_PIC_SIZE)
-		# self.resultLabel.setPixmap(px)
-		# self.resultLabel.setToolTip('The result will appear here.')
-		# self.resultLabel.resize(RESULT_PIC_SIZE, RESULT_PIC_SIZE)
-		# self.resultLabel.show()
-
 		self.resultView = pg.ImageView(self)
 		self.resultView.setToolTip('The result will appear here.')
 
 		self.layout = QtGui.QVBoxLayout(self)
 		self.inputLayout = QtGui.QHBoxLayout()
+		
 
 		self.layout.addWidget(self.loadButton)
 		self.inputLayout.addWidget(self.param_tree)
@@ -104,24 +92,47 @@ class App(QWidget):
 	@pyqtSlot()
 	def startClickAction(self):
 
-		n_angles =  self.parameters.child("n_angles").value()
-		n_detectors = self.parameters.child("n_detectors").value()
-		img_size = self.parameters.child("image_size").value()
-		#liczba detektorow: width
+		self.startButton.setEnabled(False)
+		width = self.parameters.child('width').value()
+		n_angles = self.parameters.child('n_angles').value()
+		n_detectors = self.parameters.child('n_detectors').value()
+		
 		sinogram = np.zeros(shape=(n_angles, n_detectors), dtype=np.int64)
-		proba.radon(self.img, sinogram, n_angles, n_detectors,n_detectors)
-		print(sinogram)
-		new_img = np.zeros(shape=(img_size, img_size), dtype=np.int64)
-		proba.reverse_radon(new_img, sinogram, n_detectors, img_size)
-		print(new_img)
-		self.resultView.setImage(new_img, autoLevels=False, levels=(0.01,1))
-		print('start doing stuff')
+		
+		i=0
+		for step in logic.radon(self.img, sinogram, n_angles, n_detectors, width):
+			i+=1
+			
+		#mask_size = self.parameters.child('mask_size').value()
+		#if mask_size > 0:
+		#	mask = logic.get_mask(mask_size)
+		#	print("Mask: {}".format(mask))
+		#	sinogram = logic.filter(sinogram, mask)
+		#
+		img_size = self.parameters.child('image_size').value()
+		result_img = np.zeros(shape=(n_angles, img_size, img_size), dtype=np.float64)
+		
+		for step in logic.reverse_radon(result_img, sinogram, width, img_size):
+			i+=1
+		test_slice = result_img[-1, img_size//2, :]
+		min_value = np.percentile(test_slice, 5.0)
+		max_value = np.percentile(test_slice, 95.0)
+		print("Levels: ({}, {})".format(min_value, max_value))
+		self.resultView.setImage(result_img, autoLevels=False,
+                                  levels=(min_value, max_value))
+		play_rate = self.parameters.child('play_rate').value()
+		self.resultView.play(play_rate)
+		
+		
+		self.startButton.setEnabled(True)
 
 
 
 def startApp():
 	app = QApplication(sys.argv)
 	ex = App()
+	ex.resize(800, 500)
+	ex.show()
 	sys.exit(app.exec_())
 
 
