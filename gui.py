@@ -3,16 +3,19 @@ import sys
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
 from pyqtgraph.Qt import QtGui
 import numpy as np
 import logic
+from PIL import Image
 
 FILENAME = ""
 LOADED_PIC_SIZE = 300
 RESULT_PIC_SIZE = 300
+result_img = ""
 
+
+PLAY_RATE = 5
 
 class App(QWidget):
 
@@ -44,8 +47,7 @@ class App(QWidget):
 			{'name': 'n_angles', 'type': 'int', 'value': 50},
 			{'name': 'n_detectors', 'type': 'int', 'value': 10},
             {'name': 'width', 'type': 'float', 'value': 0.9},
-           # {'name': 'mask_size', 'type': 'float', 'value': 5},
-            {'name': 'play_rate', 'type': 'int', 'value': 2}
+            {'name': 'mask_size', 'type': 'float', 'value': 5}
 		)
 		self.parameters = pg.parametertree.Parameter.create(name='Settings', type='group', children=param_tree)
 		self.param_tree = pg.parametertree.ParameterTree()
@@ -56,6 +58,11 @@ class App(QWidget):
 		self.startButton.setToolTip('Click here to start the simulation')
 		self.startButton.clicked.connect(self.startClickAction)
 		self.startButton.setEnabled(False)
+
+		self.saveButton = QPushButton('Save image', self)
+		self.saveButton.setToolTip('Click here to save the output image')
+		self.saveButton.clicked.connect(self.saveAction)
+		self.saveButton.setEnabled(False)
 
 		self.resultView = pg.ImageView(self)
 		self.resultView.setToolTip('The result will appear here.')
@@ -70,6 +77,7 @@ class App(QWidget):
 		self.layout.addLayout(self.inputLayout)
 		self.layout.addWidget(self.startButton)
 		self.layout.addWidget(self.resultView)
+		self.layout.addWidget(self.saveButton)
 
 		self.show()
 
@@ -91,40 +99,40 @@ class App(QWidget):
 
 	@pyqtSlot()
 	def startClickAction(self):
-
+		global result_img
 		self.startButton.setEnabled(False)
 		width = self.parameters.child('width').value()
 		n_angles = self.parameters.child('n_angles').value()
 		n_detectors = self.parameters.child('n_detectors').value()
 		
 		sinogram = np.zeros(shape=(n_angles, n_detectors), dtype=np.int64)
-		
-		i=0
-		for step in logic.radon(self.img, sinogram, n_angles, n_detectors, width):
-			i+=1
-			
-		#mask_size = self.parameters.child('mask_size').value()
-		#if mask_size > 0:
-		#	mask = logic.get_mask(mask_size)
-		#	print("Mask: {}".format(mask))
-		#	sinogram = logic.filter(sinogram, mask)
-		#
+
+		logic.radon(self.img, sinogram, n_angles, n_detectors, width)
+		mask_size = self.parameters.child('mask_size').value()
+		if mask_size > 0  and mask_size < 6:
+			mask = logic.get_mask(mask_size)
+			print("Mask: {}".format(mask))
+			sinogram = logic.filter(sinogram, mask)
+
 		img_size = self.parameters.child('image_size').value()
 		result_img = np.zeros(shape=(n_angles, img_size, img_size), dtype=np.float64)
-		
-		for step in logic.reverse_radon(result_img, sinogram, width, img_size):
-			i+=1
+
+		logic.reverse_radon(result_img, sinogram, width, img_size)
 		test_slice = result_img[-1, img_size//2, :]
 		min_value = np.percentile(test_slice, 5.0)
 		max_value = np.percentile(test_slice, 95.0)
 		print("Levels: ({}, {})".format(min_value, max_value))
 		self.resultView.setImage(result_img, autoLevels=False,
                                   levels=(min_value, max_value))
-		play_rate = self.parameters.child('play_rate').value()
-		self.resultView.play(play_rate)
-		
-		
+		self.resultView.play(PLAY_RATE)
 		self.startButton.setEnabled(True)
+		self.saveButton.setEnabled(True)
+
+	@pyqtSlot()
+	def	saveAction(self):
+		global result_img
+		im = Image.fromarray(result_img)
+		im.save("your_file.jpeg")
 
 
 
