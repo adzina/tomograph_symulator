@@ -13,9 +13,8 @@ FILENAME = ""
 LOADED_PIC_SIZE = 300
 RESULT_PIC_SIZE = 300
 result_img = ""
-
-
 PLAY_RATE = 5
+
 
 class App(QWidget):
 
@@ -95,7 +94,7 @@ class App(QWidget):
 		assert len(self.img.shape) == 2
 		self.imageView.setImage(self.img, autoLevels=False, levels=(0.01, 1))
 
-		self.startButton.setEnabled(True)
+		self.startButton.setEnaled(True)
 
 	@pyqtSlot()
 	def startClickAction(self):
