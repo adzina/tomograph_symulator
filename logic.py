@@ -70,7 +70,6 @@ def radon(img: np.ndarray, sinogram: np.ndarray, n_angles: int, n_detectors: int
             points, _ = line_coord_bresen(angle,delta,img_size)
             for x, y in points:
                 sinogram[ang, detector] += img[x, y]
-        yield ang
 
 
 def reverse_radon(img, sinogram, width, img_size):
@@ -86,7 +85,6 @@ def reverse_radon(img, sinogram, width, img_size):
             points, npoints = line_coord_bresen(angle, delta, img_size)
             for x, y in points:
                 img[i_angle][x, y] += sinogram[i_angle, i_detector] / npoints
-        yield i_angle
 
 
 def get_mask(mask_size):
