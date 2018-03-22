@@ -3,11 +3,10 @@ import sys
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog
 from pyqtgraph.Qt import QtGui
 import numpy as np
 import logic
-from PIL import Image
 
 FILENAME = ""
 LOADED_PIC_SIZE = 300
@@ -42,11 +41,11 @@ class App(QWidget):
 		self.imageView.setToolTip('The loaded image will appear here.')
 
 		param_tree = (
-			{'name': 'image_size', 'type': 'int', 'value': 400},
-			{'name': 'n_angles', 'type': 'int', 'value': 50},
-			{'name': 'n_detectors', 'type': 'int', 'value': 10},
-            {'name': 'width', 'type': 'float', 'value': 0.9},
-            {'name': 'mask_size', 'type': 'float', 'value': 5}
+			{'name': 'rozmiar_obrazu_wej', 'type': 'int', 'value': 400},
+			{'name': 'liczba obrotów', 'type': 'int', 'value': 50},
+			{'name': 'liczba rzutow', 'type': 'int', 'value': 10},
+            {'name': 'rozpiętość', 'type': 'float', 'value': 0.9},
+            {'name': 'maska', 'type': 'float', 'value': 5}
 		)
 		self.parameters = pg.parametertree.Parameter.create(name='Settings', type='group', children=param_tree)
 		self.param_tree = pg.parametertree.ParameterTree()
@@ -94,26 +93,26 @@ class App(QWidget):
 		assert len(self.img.shape) == 2
 		self.imageView.setImage(self.img, autoLevels=False, levels=(0.01, 1))
 
-		self.startButton.setEnaled(True)
+		self.startButton.setEnabled(True)
 
 	@pyqtSlot()
 	def startClickAction(self):
 		global result_img
 		self.startButton.setEnabled(False)
-		width = self.parameters.child('width').value()
-		n_angles = self.parameters.child('n_angles').value()
-		n_detectors = self.parameters.child('n_detectors').value()
+		width = self.parameters.child('rozpiętość').value()
+		n_angles = self.parameters.child('liczba obrotów').value()
+		n_detectors = self.parameters.child('liczba rzutow').value()
 		
 		sinogram = np.zeros(shape=(n_angles, n_detectors), dtype=np.int64)
 
 		logic.radon(self.img, sinogram, n_angles, n_detectors, width)
-		mask_size = self.parameters.child('mask_size').value()
+		mask_size = self.parameters.child('maska').value()
 		if mask_size > 0  and mask_size < 6:
 			mask = logic.get_mask(mask_size)
 			print("Mask: {}".format(mask))
 			sinogram = logic.filter(sinogram, mask)
 
-		img_size = self.parameters.child('image_size').value()
+		img_size = self.parameters.child('rozmiar_obrazu_wej').value()
 		result_img = np.zeros(shape=(n_angles, img_size, img_size), dtype=np.float64)
 
 		logic.reverse_radon(result_img, sinogram, width, img_size)
@@ -129,9 +128,12 @@ class App(QWidget):
 
 	@pyqtSlot()
 	def	saveAction(self):
-		global result_img
-		im = Image.fromarray(result_img)
-		im.save("your_file.jpeg")
+		# global result_img
+		print('Saving file')
+		fileName = QtGui.QFileDialog.getSaveFileName(self)
+		if fileName == "": return
+		# savedImage = self.resultView.getProcessedImage()
+		# self.resultView.imageItem.save(fileName)
 
 
 
