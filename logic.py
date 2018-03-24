@@ -60,7 +60,6 @@ def line_coord_bresen(alpha: float, disp: float, size: int):
 def radon(img: np.ndarray, sinogram: np.ndarray, n_angles: int, n_detectors: int, \
                      width: float):
     assert len(img.shape) == 2  #image in greyscale
-    
     img_size = min(img.shape)
     width_px = img_size * width
     for ang in range(n_angles):

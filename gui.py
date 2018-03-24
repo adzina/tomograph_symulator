@@ -41,11 +41,10 @@ class App(QWidget):
 		self.imageView.setToolTip('The loaded image will appear here.')
 
 		param_tree = (
-			{'name': 'rozmiar_obrazu_wej', 'type': 'int', 'value': 400},
 			{'name': 'liczba obrotów', 'type': 'int', 'value': 50},
-			{'name': 'liczba rzutow', 'type': 'int', 'value': 10},
+			{'name': 'liczba rzutów', 'type': 'int', 'value': 10},
             {'name': 'rozpiętość', 'type': 'float', 'value': 0.9},
-            {'name': 'maska', 'type': 'float', 'value': 5}
+            {'name': 'maska', 'type': 'int', 'value': 5}
 		)
 		self.parameters = pg.parametertree.Parameter.create(name='Settings', type='group', children=param_tree)
 		self.param_tree = pg.parametertree.ParameterTree()
@@ -101,18 +100,18 @@ class App(QWidget):
 		self.startButton.setEnabled(False)
 		width = self.parameters.child('rozpiętość').value()
 		n_angles = self.parameters.child('liczba obrotów').value()
-		n_detectors = self.parameters.child('liczba rzutow').value()
+		n_detectors = self.parameters.child('liczba rzutów').value()
 		
 		sinogram = np.zeros(shape=(n_angles, n_detectors), dtype=np.int64)
-
 		logic.radon(self.img, sinogram, n_angles, n_detectors, width)
 		mask_size = self.parameters.child('maska').value()
-		if mask_size > 0  and mask_size < 6:
+		if mask_size > 0:
 			mask = logic.get_mask(mask_size)
 			print("Mask: {}".format(mask))
 			sinogram = logic.filter(sinogram, mask)
 
-		img_size = self.parameters.child('rozmiar_obrazu_wej').value()
+		img_size = len(self.img[0])
+		
 		result_img = np.zeros(shape=(n_angles, img_size, img_size), dtype=np.float64)
 
 		logic.reverse_radon(result_img, sinogram, width, img_size)
